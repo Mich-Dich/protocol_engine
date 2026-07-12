@@ -1,0 +1,23 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Debug (linux-x86_64)",
+            "compileCommands": "${workspaceFolder}/build/gcc16/compile_commands.json",
+            "includePath": [
+                "${workspaceFolder}/**",
+            ],
+            "defines": [
+                "PLATFORM_LINUX",
+                "DEBUG",
+                "IMGUI_DEFINE_MATH_OPERATORS",
+                "RENDER_API_VULKAN"
+            ],
+            
+            "compilerPath": "/usr/bin/gcc-16",
+            "cStandard": "c11",
+            "cppStandard": "c++26",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ]
+}

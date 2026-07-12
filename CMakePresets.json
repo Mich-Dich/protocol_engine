@@ -1,0 +1,22 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "gcc16",
+            "displayName": "GCC 16",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/gcc16",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc-16",
+                "CMAKE_CXX_COMPILER": "g++-16",
+                "CMAKE_CXX_STANDARD": "26"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "gcc16",
+            "configurePreset": "gcc16"
+        }
+    ]
+}

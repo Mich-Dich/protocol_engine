@@ -1,0 +1,210 @@
+
+protocol:
+  name: PWM Command Protocol (PCP)
+  description: Master-slave protocol for controlling multiple PWM channels. Two-level structure: outer frame with addressing/CRC, inner packet with command and data.
+  version: 1 0 0
+  endian: little                          # all multi-byte integers are little-endian
+  start_frame: physical_frame
+
+  frames:
+    physical_frame:
+      fields:
+      - name: start_byte
+        description: 
+        type: fixed_byte_1
+        value: 0xAA
+
+      - name: device_id
+        description: Target device ID (0x00 = master, 0xFF = broadcast)
+        type: self_ID
+
+      - name: length
+        description: Number of bytes of the inner packet (payload)
+        type: length_1_byte
+        over_fields: [payload]
+
+      - name: pwm_channel
+        description: Bitmask of target channels (little-endian), 0x0000 for system-wide
+        type: byte_2
+        
+      - name: payload
+        description: Holds the actual payload that needs to be transported
+        type: frame             
+        frame_name: payload_frame           # points to the inner packet definition
+
+      - name: crc16
+        description: CRC-16/XMODEM over [length, payload], little-endian
+        type: CRC
+        crc:
+          algorithm: XMODEM
+          polynomial: 0x1021
+          initial_value: 0x0000
+          final_xor: 0x0000
+          reflect_in: false
+          reflect_out: false
+          over_fields: [length, payload]    # compute over these serialized fields
+          byte_order: little                # how the CRC value is stored
+
+    # -------------------- Master‑to‑Slave Commands --------------------
+    enable_save_mode:
+      id: 0x01
+      direction: master_to_slave
+      response_frame: acknowledge
+      fields:
+      - name: use_keep_alive_mode
+        description: 
+        type: bool
+      - name: heartbeat_ms
+        description: Maximum silence interval in ms (ignored if disabled)
+        type: u16
+
+    enable_save_mode:
+      id: 0x01
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: use_keep_alive_mode
+          type: byte_1                      # boolean: 0 = disable, 1 = enable
+        - name: heartbeat_ms
+          type: byte_2
+          description: Maximum silence interval in ms (ignored if disabled)
+
+    set_safe_value:
+      id: 0x02
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: safe_value
+          type: byte_2
+
+    ping:
+      id: 0x04
+      direction: master_to_slave
+      response: acknowledge
+      fields:                               # no data
+
+    set_default_value:
+      id: 0x06
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: default_value
+          type: byte_2
+
+    query_current_state:
+      id: 0x07
+      direction: master_to_slave
+      response: current_state_response      # special response
+      fields: []
+
+    set_absolute_value:
+      id: 0x08
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: target_value
+          type: byte_2
+        - name: flags
+          type: byte_1
+          description: Bit 0 indicates presence of duration_ms
+          optional_fields:
+            - name: duration_ms
+              type: byte_2
+              condition: flags & 0x01
+              default: 0
+
+    oscillation:
+      id: 0x0A
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: value_0
+          type: byte_2
+        - name: value_1
+          type: byte_2
+        - name: flags
+          type: byte_1
+          description: Bit 0: duration_ms present, Bit 1: hold_time_ms present, Bit 2: cycle_count present
+          optional_fields:
+            - name: duration_ms
+              type: byte_2
+              condition: flags & 0x01
+              default: 0
+            - name: hold_time_ms
+              type: byte_2
+              condition: flags & 0x02
+              default: 0
+            - name: cycle_count
+              type: byte_2
+              condition: flags & 0x04
+              default: 0
+
+    oscillation_stop:
+      id: 0x0B
+      direction: master_to_slave
+      response: acknowledge
+      fields:
+        - name: return_to_default
+          type: byte_1   # boolean
+
+    emergency_stop:
+      id: 0x0C
+      direction: master_to_slave
+      response: acknowledge
+      fields: []
+
+    # -------------------- Slave‑to‑Master --------------------
+    acknowledge:
+      id: 0x0D
+      direction: slave_to_master
+      response: none   # no further response expected
+      fields:
+        - name: ack_command_id
+          type: byte_2
+          description: ID of the acknowledged command
+
+    error:
+      id: 0x0E
+      direction: slave_to_master
+      response: none
+      fields:
+        - name: failed_command_id
+          type: byte_2
+        - name: error_code
+          type: byte_2
+
+    current_state_response:
+      id: 0x0F
+      direction: slave_to_master
+      response: none
+      fields:
+        - name: overall_error_code
+          type: byte_2
+        - name: channel_blocks
+          type: dynamic_array
+          description: One block per bit set in the requesting packet's pwm_channel, processed LSB first. The number of blocks is determined from the request context, not from the frame itself.
+          element:
+            fields:
+              - name: current_value
+                type: byte_2
+              - name: default_value
+                type: byte_2
+              - name: current_command
+                type: byte_2
+              - name: oscillation_data
+                type: optional
+                condition: current_command == 0x0A
+                fields:
+                  - name: osc_value_0
+                    type: byte_2
+                  - name: osc_value_1
+                    type: byte_2
+
+  # Optional predefined error codes (for reference)
+  error_codes:
+    0x0001: Invalid command ID
+    0x0002: Invalid parameter
+    0x0003: Channel not available
+    0x0004: CRC mismatch
+    0x0005: Command not allowed in current state
+    0xFFFF: General failure
