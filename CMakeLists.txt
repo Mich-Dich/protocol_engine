@@ -30,6 +30,8 @@ elseif(APPLE)
     message(FATAL_ERROR "Apple/macOS platform is not supported by this project.")
 endif()
 
+set(CMAKE_BUILD_TYPE                            Debug)
+
 add_compile_definitions(DEBUG)
 
 target_precompile_headers(${PROJECT_NAME}       PRIVATE
@@ -45,13 +47,13 @@ target_compile_options(${PROJECT_NAME}          PRIVATE
     -freflection
 )
 
-option(CORE_VERBOSE_INFO                            "Show detailed file list for Core" OFF)
-set(CORE_VERBOSE_INFO                               TRUE)
+option(CORE_VERBOSE_INFO                        "Show detailed file list for Core" OFF)
+set(CORE_VERBOSE_INFO                           TRUE)
 include(${CMAKE_SOURCE_DIR}/helper.cmake)
 print_source_file_details(
-    SOURCES                                             ${SOURCES}
-    NAME                                                ${PROJECT_NAME}
-    SOURCE_DIR                                          "${CMAKE_SOURCE_DIR}"
-    VERBOSE                                             CORE_VERBOSE_INFO
-    TARGET                                              ${PROJECT_NAME}
+    SOURCES                                     ${SOURCES}
+    NAME                                        ${PROJECT_NAME}
+    SOURCE_DIR                                  "${CMAKE_SOURCE_DIR}"
+    VERBOSE                                     CORE_VERBOSE_INFO
+    TARGET                                      ${PROJECT_NAME}
 )
