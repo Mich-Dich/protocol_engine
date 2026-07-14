@@ -17,23 +17,23 @@ const std::vector<PE::argument_parser::argument_spec> specs =
 {
     {
         .name = "protocol_def_path",
-        .shortName = "",
+        .short_name = "p",
         .required = true,
         .positional = true,
         .position = 0,
         .type = "path",
-        .defaultValue = std::filesystem::path{},
-        .helpText = "Path to the protocol definition file"
+        .default_value = std::filesystem::path{},
+        .help_text = "Path to the protocol definition file"
     },
     {
         .name = "output_path",
-        .shortName = "",
+        .short_name = "o",
         .required = false,
-        .positional = true,
+        .positional = false,
         .position = 0,
         .type = "path",
-        .defaultValue = std::filesystem::path{},
-        .helpText = "output path for creating the generated code"
+        .default_value = std::filesystem::path{},
+        .help_text = "output path for creating the generated code"
     }
 };
 

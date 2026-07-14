@@ -1,6 +1,7 @@
 
 protocol:
-  name: PWM Command Protocol (PCP)
+  name: PWM Command Protocol
+  short_name: PCP
   description: Master-slave protocol for controlling multiple PWM channels. Two-level structure: outer frame with addressing/CRC, inner packet with command and data.
   version: 1 0 0
   endian: little                          # all multi-byte integers are little-endian
