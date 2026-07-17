@@ -5,7 +5,7 @@
 
 // FORWARD DECLARATIONS ================================================================================================
 
-namespace PE::crc {
+namespace PE::CRC {
 
     // CONSTANTS =======================================================================================================
 
@@ -21,7 +21,7 @@ namespace PE::crc {
 
     // FUNCTION IMPLEMENTATION =========================================================================================
 
-    [[nodiscard]] constexpr u64 calculate(const algorithm algo, std::span<const std::byte> data) {
+    [[nodiscard]] constexpr u64 calculate(const algorithm algo, const std::span<std::byte>& data) {
 
         switch (algo) {
             // CRC-8
